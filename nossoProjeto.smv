@@ -1,0 +1,17 @@
+MODULE quarto()
+VAR
+    estado: {ocupado, desocupado};
+
+MODULE cartao(id)
+VAR
+    id: integer_constant;
+    estado: {em_uso, disponivel};
+    quarto: quarto();
+
+
+
+MODULE hotel()
+VAR
+    cartao: cartao(id);
+    --quarto: {ocupado, desocupado};
+

@@ -1,0 +1,65 @@
+MODULE parabrisa(estadoChuva)
+
+VAR
+  bicoEjetor : boolean;
+  limpador   : {desligado, baixo, alto};
+  modoManual : {desligado, ligado};
+ASSIGN
+  init(bicoEjetor) := FALSE;
+
+ASSIGN
+  limpador :=
+    case
+      estadoChuva = semChuva   & (bicoEjetor = FALSE) & modoManual = desligado : desligado;
+      estadoChuva = semChuva   & bicoEjetor = TRUE    & modoManual = desligado : {baixo};
+      estadoChuva = semChuva   & modoManual = ligado                           : {baixo, alto};
+      
+      estadoChuva = chuvaFraca & modoManual = desligado                        : {baixo};
+      estadoChuva = chuvaFraca & bicoEjetor = FALSE & modoManual = ligado      : {alto};
+      estadoChuva = chuvaFraca & bicoEjetor = TRUE    & modoManual = ligado    : {baixo, alto};
+
+      estadoChuva = chuvaForte & modoManual = desligado                        : {alto};
+      estadoChuva = chuvaForte & bicoEjetor = FALSE & modoManual = ligado      : {baixo};
+      estadoChuva = chuvaForte & bicoEjetor = TRUE    & modoManual = ligado    : {baixo, alto};
+
+    esac;
+
+  next(bicoEjetor) :=
+    case
+      bicoEjetor = TRUE: FALSE;
+      bicoEjetor = FALSE: {TRUE, FALSE};
+    
+    esac;  
+
+  modoManual := {desligado, ligado};
+
+MODULE main
+VAR
+  estadoChuva : {semChuva, chuvaFraca, chuvaForte};
+  parabrisa : process parabrisa(estadoChuva);
+
+
+------- TESTES 
+SPEC EX (parabrisa.limpador = desligado & parabrisa.bicoEjetor = FALSE); 
+SPEC EX (parabrisa.limpador = baixo & parabrisa.bicoEjetor = FALSE);
+SPEC EX (parabrisa.limpador = baixo & parabrisa.bicoEjetor = TRUE);
+SPEC EX (parabrisa.limpador = alto & parabrisa.bicoEjetor = FALSE);
+SPEC EX (parabrisa.limpador = alto & parabrisa.bicoEjetor = TRUE);
+
+-- nenhum caso do bico estar ligado e o limpador nao
+SPEC AX (parabrisa.bicoEjetor = TRUE -> parabrisa.limpador != desligado); 
+
+-- em chuva fraca sem manual, é sempre baixo
+SPEC AX ((parabrisa.modoManual = desligado & estadoChuva = chuvaFraca) -> parabrisa.limpador = baixo); 
+
+-- em chuva forte sem manual, é sempre alto
+SPEC AX ((parabrisa.modoManual = desligado & estadoChuva = chuvaForte) -> parabrisa.limpador = alto);  
+
+-- sempre que o bico ejetor ligar sem chuva e sem modo manual (começar do 0), parabrisa vai começar baixo
+SPEC AX ((parabrisa.modoManual = desligado & estadoChuva = semChuva & parabrisa.bicoEjetor = TRUE) -> parabrisa.limpador = baixo); 
+
+-- sempre que a palheta estiver desligada, seu proximo estado deve ser desligado ou baixo
+SPEC AG(parabrisa = desligado -> AX(parabrisa = desligado | parabrisa = baixo))
+
+-- sempre que os bicos ejetores forem ligados, eles serão desligados em sequencia
+LTLSPEC G (parabrisa.bicoEjetor = TRUE) -> X (parabrisa.bicoEjetor = FALSE);
