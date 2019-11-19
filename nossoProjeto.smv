@@ -21,11 +21,12 @@ ASSIGN
 
     next(estado) := {em_uso, disponivel};
 
-MODULE hotel(estadoCliente, estadoGerente)
+MODULE hotel(estadoCliente, estadoGerente)-- Sera passado o que um cliente ou gerente deseja fazer
 VAR
     cartao: cartao(id);
     quarto: quarto();
     acao: {ativarCartao, bloquearCartao, contabilizarCompra, receberCartao};
+    -- A acao sera definida de acordo com os estados de Cliente e Gerente.
 
 MODULE main
 VAR
