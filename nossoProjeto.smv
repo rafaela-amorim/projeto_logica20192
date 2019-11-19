@@ -1,17 +1,34 @@
 MODULE quarto()
 VAR
     estado: {ocupado, desocupado};
+    despesas: integer;
 
-MODULE cartao(id)
+ASSIGN
+    init(estado) := desocupado;
+    init(despesas) := 0;
+
+    next(estado) := {ocupado, desocupado};
+
+MODULE cartao(idCard)
 VAR
     id: integer_constant;
     estado: {em_uso, disponivel};
     quarto: quarto();
 
+ASSIGN
+    init(id) := idCard;
+    init(estado) := disponivel;
 
+    next(estado) := {em_uso, disponivel};
 
-MODULE hotel()
+MODULE hotel(estadoCliente, estadoGerente)
 VAR
     cartao: cartao(id);
-    --quarto: {ocupado, desocupado};
+    quarto: quarto();
+    acao: {ativarCartao, bloquearCartao, contabilizarCompra, receberCartao};
+
+MODULE main
+VAR
+    estadoCliente : {abrindoPorta, fazendoCompra, devolvendoCartao};
+    estadoGerente : {ativandoCartao};
 
