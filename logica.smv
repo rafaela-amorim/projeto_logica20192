@@ -1,8 +1,9 @@
 MODULE quarto(quarto_action)
+	
 	VAR	
 		status : {disponivel, ocupado};
 		compras : 0..10;
-		comprando : boolean;
+		--comprando : boolean;
 		
 	ASSIGN
 		init(status) := disponivel;
@@ -14,36 +15,42 @@ MODULE quarto(quarto_action)
 				quarto_action = vagar	: disponivel;
 			esac;
 		
-		next compras :=
-			case
-				comprando & compras < 10 & status = ocupado : compras + 1; 
-				TRUE: compras;z
-			esac;
-		
 			
 		--SPEC (quarto_action = ocupar -> status = disponivel)
 		--SPEC (quarto_action = vagar -> status = ocupado)
 		
+
 MODULE cartao(cartao_action)
 	VAR
-		status : {disponivel, em_uso, bloqueado};
+		status : {disponivel, em_uso};
 	ASSIGN
 		init(status) := disponivel;
 		
 		next(status) :=
 			case
 				cartao_action = registrar	: em_uso;
-				cartao_action = entregar	: disponivel;
+				cartao_action = devolver	: disponivel;
 			esac;
+
 		--SPEC (cartao_action = registrar -> status = disponivel)
-		--SPEC (cartao_action = entregar -> status = em_uso)
+		--SPEC (cartao_action = devolver -> status = em_uso)
+		
 		
 MODULE hotel()
 	VAR
 		quarto_action := {ocupar, vagar};
-		cartao_action := {registrar, entregar};		
+		cartao_action := {registrar, devolver};	
+		
+		quarto1 := quarto(quarto_action);
+		quarto2 := quarto(quarto_action);
+	
 	ASSIGN
+
+		next compras :=
+			case
+				comprando & compras < 10 & status = ocupado : compras + 1; 
+				TRUE: compras;
+			esac;
 		
 		
 MODULE main
-	
