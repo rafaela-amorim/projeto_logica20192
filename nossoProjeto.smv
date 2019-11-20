@@ -32,8 +32,9 @@ VAR
 ASSIGN
     acao := 
         case
-            estadoGerente = ativandoCartao & cartoes[indiceCartao].estado = disponivel & quartos[indiceQuarto].estado = desocupado : ativarCartao; 
+            -- estadoGerente = ativandoCartao & cartoes[indiceCartao].estado = disponivel & quartos[indiceQuarto].estado = desocupado : ativarCartao; 
         esac;
+
 
 MODULE main
 VAR
