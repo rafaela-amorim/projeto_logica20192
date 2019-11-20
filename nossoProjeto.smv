@@ -1,37 +1,41 @@
-MODULE quarto()
+MODULE quarto(indiceQuarto)
 VAR
-	num_cartoes: 0..3;
     estado: {ocupado, desocupado};
-    despesas: integer;
+    despesas: 0..100;
+    indiceQuarto: 0..2;
 
 ASSIGN
     init(estado) := desocupado;
     init(despesas) := 0;
-	init(num_cartoes) := 0;
+    init(indiceQuarto) := indiceQuarto;
 
     next(estado) := {ocupado, desocupado};
 
-MODULE cartao(idCard)
+MODULE cartao(idCard, idQuarto)
 VAR
-    id: integer_constant;
+    id: 0..8;
     estado: {em_uso, disponivel};
-    quarto: quarto();
+    idQuarto: 0..2;
 
 ASSIGN
     init(id) := idCard;
     init(estado) := disponivel;
+    init(idQuarto) := idQuarto;
 
     next(estado) := {em_uso, disponivel};
 
-MODULE hotel(estadoCliente, estadoGerente)-- Sera passado o que um cliente ou gerente deseja fazer
+MODULE hotel(estadoCliente, estadoGerente, indiceQuarto, indiceCartao)-- Sera passado o que um cliente ou gerente deseja fazer
 VAR
-    cartao: cartao(id);
-    quarto: quarto();
     acao: {ativarCartao, bloquearCartao, contabilizarCompra, receberCartao};
     -- A acao sera definida de acordo com os estados de Cliente e Gerente.
+
+ASSIGN
+    acao := 
+        case
+            estadoGerente = ativandoCartao & cartoes[indiceCartao].estado = disponivel & quartos[indiceQuarto].estado = desocupado : ativarCartao; 
+        esac;
 
 MODULE main
 VAR
     estadoCliente : {abrindoPorta, fazendoCompra, devolvendoCartao};
     estadoGerente : {ativandoCartao};
-
