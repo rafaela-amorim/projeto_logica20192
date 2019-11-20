@@ -1,11 +1,13 @@
 MODULE quarto()
 VAR
+	num_cartoes: 0..3;
     estado: {ocupado, desocupado};
     despesas: integer;
 
 ASSIGN
     init(estado) := desocupado;
     init(despesas) := 0;
+	init(num_cartoes) := 0;
 
     next(estado) := {ocupado, desocupado};
 
