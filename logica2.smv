@@ -39,16 +39,15 @@ MODULE hotel(hotel_action, objetoAcao)
     ASSIGN
 
 		next (quarto1.status) :=
-            -- Caso em que a acao do hotel eh reservarQuarto e oquarto desejado eh o
+            -- Caso em que a acao do hotel eh reservarQuarto e o quarto desejado eh o
             -- quarto 1.
             case
                 hotel_action = reservarQuarto & objetoAcao = q1 & quarto1.status = disponivel : ocupado;
-                TRUE: disponivel;
+                hotel_action = liberarQuarto & objetoAcao = q1 & quarto1.status = ocupado : disponivel;
+                TRUE: quarto1.status;
             esac;
         
         next (quarto1.compras) :=
-            -- Caso em que a acao do hotel eh creditarCompra, e o cartao usado se refere
-            -- quarto 1.
             case
                 hotel_action = creditarCompra & objetoAcao = c1 & cartao1.quartoId = 
                 quarto1.idQuarto & quarto1.compras < 10 : (quarto1.compras + 1);
@@ -59,7 +58,7 @@ MODULE hotel(hotel_action, objetoAcao)
 MODULE main
     VAR
         -- Acoes de um hotel.
-        hotel_action : {reservarQuarto, creditarCompra};
+        hotel_action : {reservarQuarto, creditarCompra, liberarQuarto};
         -- Objetos que um hotel pode usar em suas acoes.
         objetoAcao : {q1, c1};
 
