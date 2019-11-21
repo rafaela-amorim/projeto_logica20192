@@ -1,0 +1,50 @@
+MODULE quarto()
+	
+	VAR	
+		status : {disponivel, ocupado};
+		compras : 0..10;
+		
+	ASSIGN
+		init(status) := disponivel;
+		init(compras) := 0;
+			
+
+MODULE cartao(quarto_card)
+	VAR
+		status : {disponivel, em_uso};
+        quarto : quarto();
+    
+	ASSIGN
+		init(status) := disponivel;
+        init(quarto) := quarto_card;
+		
+		
+MODULE hotel(hotel_action, objetoAcao)
+	VAR
+		-- Quartos
+        quarto1 : quarto();
+		--quarto2 : quarto();
+
+        -- Cartoes
+        --cartao1 : cartao(quarto1);
+        --cartao2 : cartao();
+        --cartao3 : cartao();
+        --cartao4 : cartao();
+        --cartao5 : cartao(quarto());
+        --cartao6 : cartao(quarto());
+	
+    ASSIGN
+
+		next (quarto1.status) :=
+            case
+                hotel_action = reservarQuarto & objetoAcao = q1 & quarto1.status = disponivel : ocupado;
+                TRUE: disponivel;
+            esac;
+		
+		
+MODULE main
+    VAR
+        hotel_action : {reservarQuarto};
+        objetoAcao : {q1};
+
+        hotel : process hotel(hotel_action, objetoAcao);
