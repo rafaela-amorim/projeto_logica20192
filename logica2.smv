@@ -146,8 +146,6 @@ MODULE hotel(hotel_action, objetoAcao)
             esac;	
 		--endQuarto2
 		
-		LTLSPEC G ! (quarto1.status = desocupado & cartao1.status = em_uso)
-		
 MODULE main
     VAR
         -- Acoes de um hotel.
@@ -158,5 +156,17 @@ MODULE main
 
         hotel : process hotel(hotel_action, objetoAcao);
 		
+		--Status de quarto
+		LTLSPEC G ! (hotel.quarto1.status = desocupado & hotel.cartao1.status = em_uso)
+		LTLSPEC G (hotel.quarto2.status = ocupado & hotel_action = liberarQuarto & objetoAcao = q2) -> X (hotel.quarto2.status = disponivel)
+		LTLSPEC G (hotel.quarto1.status = desocupado & hotel_action = reservarQuarto & objetoAcao = q1 & _process_selector_ = hotel) -> X (hotel.quarto1.status = ocupado)
+		
+		--status de cartao
+		LTLSPEC G (hotel.cartao1.status = disponivel & hotel_action = reservarQuarto & objetoAcao = q1 & _process_selector_ = hotel) -> X (hotel.cartao1.status = em_uso)
+		--teste de invalidade
+		
+		--Status de compras
+		LTLSPEC G ((hotel_action = creditarCompra & (objetoAcao = c1 | objetoAcao = c2 | objetoAcao = c3) & hotel.quarto1.status = ocupado & _process_selector_ = hotel & hotel.quarto1.compras = 0) -> X (hotel.quarto1.compras = 1))
+	
 FAIRNESS
 	running;
