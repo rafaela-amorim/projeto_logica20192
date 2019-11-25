@@ -1,22 +1,20 @@
 MODULE quarto(idQuarto_)
 	
 	VAR	
-		status : {disponivel, ocupado};
+		status : {desocupado, ocupado};
 		compras : 0..10;
-        idQuarto : 0..1;
-		
+        idQuarto : 0..2;
 	ASSIGN
         init(idQuarto) := idQuarto_; 
-		init(status) := disponivel;
+		init(status) := desocupado;
 		init(compras) := 0;
-
-        next(idQuarto) := idQuarto;
-			
-
+		
+		next(idQuarto) := idQuarto;
+		
 MODULE cartao(quarto_card)
 	VAR
 		status : {disponivel, em_uso};
-        quartoId : 0..1;
+        quartoId : 0..2;
     
 	ASSIGN
 		init(status) := disponivel;
@@ -26,40 +24,139 @@ MODULE hotel(hotel_action, objetoAcao)
 	VAR
 		-- Quartos
         quarto1 : quarto(0);
-		--quarto2 : quarto();
+		quarto2 : quarto(1);
 
         -- Cartoes
-        cartao1 : cartao(0);
-        --cartao2 : cartao();
-        --cartao3 : cartao();
-        --cartao4 : cartao();
-        --cartao5 : cartao(quarto());
-        --cartao6 : cartao(quarto());
+        cartao1 : cartao(2);
+        cartao2 : cartao(2);
+        cartao3 : cartao(2);
+        cartao4 : cartao(2);
+        cartao5 : cartao(2);
+        cartao6 : cartao(2);
 	
     ASSIGN
-
+		--Quarto1
+		--operacao de resevar quarto com os cartoes 1,2,3	
+		next(cartao1.status) := 
+			case
+				hotel_action = reservarQuarto & objetoAcao = q1 & cartao1.status = disponivel : em_uso;
+				hotel_action = liberarQuarto & objetoAcao = q1 & cartao1.status = em_uso : disponivel;
+				TRUE : cartao1.status;
+			esac;
+		next(cartao1.quartoId) :=
+			case
+				hotel_action = reservarQuarto & objetoAcao = q1 & cartao1.quartoId = 2 : 0;
+				hotel_action = liberarQuarto & objetoAcao = q1 & cartao1.quartoId = 0 : 2;
+				TRUE : cartao1.quartoId;
+			esac;
+			
+		next(cartao2.status) := 
+			case
+				hotel_action = reservarQuarto & objetoAcao = q1 & cartao2.status = disponivel : em_uso;
+				hotel_action = liberarQuarto & objetoAcao = q1 & cartao2.status = em_uso : disponivel;
+				TRUE : cartao2.status;
+			esac;
+		next(cartao2.quartoId) :=
+			case
+				hotel_action = reservarQuarto & objetoAcao = q1 & cartao2.quartoId = 2 : 0;
+				hotel_action = liberarQuarto & objetoAcao = q1 & cartao2.quartoId = 0 : 2;
+				TRUE : cartao2.quartoId;
+			esac;
+		next(cartao3.status) := 
+			case
+				hotel_action = reservarQuarto & objetoAcao = q1 & cartao3.status = disponivel : em_uso;
+				hotel_action = liberarQuarto & objetoAcao = q1 & cartao3.status = em_uso : disponivel;
+				TRUE : cartao3.status;
+			esac;
+		next(cartao3.quartoId) :=
+			case
+				hotel_action = reservarQuarto & objetoAcao = q1 & cartao3.quartoId = 2 : 0;
+				hotel_action = liberarQuarto & objetoAcao = q1 & cartao3.quartoId = 0 : 2;
+				TRUE : cartao3.quartoId;
+			esac;
 		next (quarto1.status) :=
-            -- Caso em que a acao do hotel eh reservarQuarto e o quarto desejado eh o
-            -- quarto 1.
+            -- Caso em que a acao do hotel eh reservarQuarto e o quarto desejado eh o quarto 1.
             case
-                hotel_action = reservarQuarto & objetoAcao = q1 & quarto1.status = disponivel : ocupado;
-                hotel_action = liberarQuarto & objetoAcao = q1 & quarto1.status = ocupado : disponivel;
+                hotel_action = reservarQuarto & objetoAcao = q1 & quarto1.status = desocupado : ocupado;
+                hotel_action = liberarQuarto & objetoAcao = q1 & quarto1.status = ocupado : desocupado;
                 TRUE: quarto1.status;
             esac;
         
         next (quarto1.compras) :=
             case
-                hotel_action = creditarCompra & objetoAcao = c1 & cartao1.quartoId = 
-                quarto1.idQuarto & quarto1.compras < 10 : (quarto1.compras + 1);
+                hotel_action = creditarCompra & ((objetoAcao = c2 & cartao2.quartoId = quarto1.idQuarto) | (objetoAcao = c1 & cartao1.quartoId = quarto1.idQuarto) |
+				(objetoAcao = c3 & cartao3.quartoId = quarto1.idQuarto)) & quarto1.compras < 10 & quarto1.status = ocupado : (quarto1.compras + 1);
+				--hotel_action = liberarQuarto & objetoAcao = q1 & quarto1.status = ocupado : 0;
                 TRUE : quarto1.compras;
-            esac;
+            esac;	
+		--endQuarto1
 		
+		--Quarto2
+		--operacao de resevar quarto com os cartoes 4,5,6	
+		next(cartao4.status) := 
+			case
+				hotel_action = reservarQuarto & objetoAcao = q2 & cartao4.status = disponivel : em_uso;
+				hotel_action = liberarQuarto & objetoAcao = q2 & cartao4.status = em_uso : disponivel;
+				TRUE : cartao4.status;
+			esac;
+		next(cartao4.quartoId) :=
+			case
+				hotel_action = reservarQuarto & objetoAcao = q2 & cartao4.quartoId = 2 : 1;
+				hotel_action = liberarQuarto & objetoAcao = q2 & cartao4.quartoId = 1 : 2;
+				TRUE : cartao4.quartoId;
+			esac;
+			
+		next(cartao5.status) := 
+			case
+				hotel_action = reservarQuarto & objetoAcao = q2 & cartao5.status = disponivel : em_uso;
+				hotel_action = liberarQuarto & objetoAcao = q2 & cartao5.status = em_uso : disponivel;
+				TRUE : cartao5.status;
+			esac;
+		next(cartao5.quartoId) :=
+			case
+				hotel_action = reservarQuarto & objetoAcao = q2 & cartao5.quartoId = 2 : 1;
+				hotel_action = liberarQuarto & objetoAcao = q2 & cartao5.quartoId = 1 : 2;
+				TRUE : cartao5.quartoId;
+			esac;
+		next(cartao6.status) := 
+			case
+				hotel_action = reservarQuarto & objetoAcao = q2 & cartao6.status = disponivel : em_uso;
+				hotel_action = liberarQuarto & objetoAcao = q2 & cartao6.status = em_uso : disponivel;
+				TRUE : cartao6.status;
+			esac;
+		next(cartao6.quartoId) :=
+			case
+				hotel_action = reservarQuarto & objetoAcao = q2 & cartao6.quartoId = 2 : 1;
+				hotel_action = liberarQuarto & objetoAcao = q2 & cartao6.quartoId = 1 : 2;
+				TRUE : cartao6.quartoId;
+			esac;
+		next (quarto2.status) :=
+            -- Caso em que a acao do hotel eh reservarQuarto e o quarto desejado eh o quarto 1.
+            case
+                hotel_action = reservarQuarto & objetoAcao = q2 & quarto2.status = desocupado : ocupado;
+                hotel_action = liberarQuarto & objetoAcao = q2 & quarto2.status = ocupado : desocupado;
+                TRUE: quarto2.status;
+            esac;
+        next (quarto2.compras) :=
+            case
+                hotel_action = creditarCompra & ((objetoAcao = c4 & cartao4.quartoId = quarto2.idQuarto) | (objetoAcao = c5 & cartao5.quartoId = quarto2.idQuarto) |
+				(objetoAcao = c6 & cartao6.quartoId = quarto2.idQuarto))& quarto2.compras < 10 & quarto2.status = ocupado : (quarto2.compras + 1);
+				--hotel_action = liberarQuarto & objetoAcao = q2 & quarto2.status = ocupado : 0;
+                TRUE : quarto2.compras;
+            esac;	
+		--endQuarto2
+		
+		LTLSPEC G ! (quarto1.status = desocupado & cartao1.status = em_uso)
 		
 MODULE main
     VAR
         -- Acoes de um hotel.
         hotel_action : {reservarQuarto, creditarCompra, liberarQuarto};
+		
         -- Objetos que um hotel pode usar em suas acoes.
-        objetoAcao : {q1, c1};
+        objetoAcao : {q1, q2, c1, c2, c3, c4, c5, c6};
 
         hotel : process hotel(hotel_action, objetoAcao);
+		
+FAIRNESS
+	running;
