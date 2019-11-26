@@ -86,7 +86,7 @@ MODULE hotel(hotel_action, objetoAcao)
             case
                 hotel_action = creditarCompra & ((objetoAcao = c2 & cartao2.quartoId = quarto1.idQuarto) | (objetoAcao = c1 & cartao1.quartoId = quarto1.idQuarto) |
 				(objetoAcao = c3 & cartao3.quartoId = quarto1.idQuarto)) & quarto1.compras < 10 & quarto1.status = ocupado : (quarto1.compras + 1);
-				--hotel_action = liberarQuarto & objetoAcao = q1 & quarto1.status = ocupado : 0;
+				hotel_action = liberarQuarto & objetoAcao = q1 & quarto1.status = ocupado : 0;
                 TRUE : quarto1.compras;
             esac;	
 		--endQuarto1
@@ -141,7 +141,7 @@ MODULE hotel(hotel_action, objetoAcao)
             case
                 hotel_action = creditarCompra & ((objetoAcao = c4 & cartao4.quartoId = quarto2.idQuarto) | (objetoAcao = c5 & cartao5.quartoId = quarto2.idQuarto) |
 				(objetoAcao = c6 & cartao6.quartoId = quarto2.idQuarto))& quarto2.compras < 10 & quarto2.status = ocupado : (quarto2.compras + 1);
-				--hotel_action = liberarQuarto & objetoAcao = q2 & quarto2.status = ocupado : 0;
+				hotel_action = liberarQuarto & objetoAcao = q2 & quarto2.status = ocupado : 0;
                 TRUE : quarto2.compras;
             esac;	
 		--endQuarto2
@@ -167,6 +167,7 @@ MODULE main
 		
 		--Status de compras
 		LTLSPEC G ((hotel_action = creditarCompra & (objetoAcao = c1 | objetoAcao = c2 | objetoAcao = c3) & hotel.quarto1.status = ocupado & _process_selector_ = hotel & hotel.quarto1.compras = 0) -> X (hotel.quarto1.compras = 1))
-	
+		LTLSPEC G ((hotel_action = liberarQuarto & objetoAcao = q1 & hotel.quarto1.status = ocupado & _process_selector_ = hotel) -> X (hotel.quarto1.compras = 0))
+		
 FAIRNESS
 	running;
