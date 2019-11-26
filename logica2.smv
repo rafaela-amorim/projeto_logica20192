@@ -2,16 +2,25 @@ MODULE quarto(idQuarto_)
 	
 	VAR	
 		status : {desocupado, ocupado};
+		--Contador para o numero de compras realizadas
 		compras : 0..10;
         idQuarto : 0..2;
+		--flag para informar se o quarto possui multa no ato de liberarQuarto
+		multa_ativa : boolean;
+		--flag para informar se o quarto foi aberto com sucesso pelo cartao
+		aberto : boolean;
+		
 	ASSIGN
         init(idQuarto) := idQuarto_; 
 		init(status) := desocupado;
 		init(compras) := 0;
+		init(multa_ativa) := FALSE;
+		init(aberto) := FALSE;
 		
 		next(idQuarto) := idQuarto;
 		
 MODULE cartao(quarto_card)
+
 	VAR
 		status : {disponivel, em_uso};
         quartoId : 0..2;
@@ -21,12 +30,13 @@ MODULE cartao(quarto_card)
         init(quartoId) := quarto_card;
 		
 MODULE hotel(hotel_action, objetoAcao)
+
 	VAR
 		-- Quartos
         quarto1 : quarto(0);
 		quarto2 : quarto(1);
 
-        -- Cartoes
+        -- Cartoes - inicia com valores absurdos (nao possui um quarto real ligado a ele)
         cartao1 : cartao(2);
         cartao2 : cartao(2);
         cartao3 : cartao(2);
@@ -36,11 +46,11 @@ MODULE hotel(hotel_action, objetoAcao)
 	
     ASSIGN
 		--Quarto1
-		--operacao de resevar quarto com os cartoes 1,2,3	
+		--operacao de resevar quarto com os cartoes 1,2,3 e fazer a entrega individual dos mesmos
 		next(cartao1.status) := 
 			case
-				hotel_action = reservarQuarto & objetoAcao = q1 & cartao1.status = disponivel : em_uso;
-				hotel_action = liberarQuarto & objetoAcao = q1 & cartao1.status = em_uso : disponivel;
+				hotel_action = reservarQuarto & objetoAcao = q1 : em_uso;
+				hotel_action = entregarCartao & objetoAcao = c1 & cartao1.status = em_uso : disponivel;
 				TRUE : cartao1.status;
 			esac;
 		next(cartao1.quartoId) :=
@@ -52,8 +62,8 @@ MODULE hotel(hotel_action, objetoAcao)
 			
 		next(cartao2.status) := 
 			case
-				hotel_action = reservarQuarto & objetoAcao = q1 & cartao2.status = disponivel : em_uso;
-				hotel_action = liberarQuarto & objetoAcao = q1 & cartao2.status = em_uso : disponivel;
+				hotel_action = reservarQuarto & objetoAcao = q1 : em_uso;
+				hotel_action = liberarQuarto & objetoAcao = c2 & cartao2.status = em_uso : disponivel;
 				TRUE : cartao2.status;
 			esac;
 		next(cartao2.quartoId) :=
@@ -64,8 +74,8 @@ MODULE hotel(hotel_action, objetoAcao)
 			esac;
 		next(cartao3.status) := 
 			case
-				hotel_action = reservarQuarto & objetoAcao = q1 & cartao3.status = disponivel : em_uso;
-				hotel_action = liberarQuarto & objetoAcao = q1 & cartao3.status = em_uso : disponivel;
+				hotel_action = reservarQuarto & objetoAcao = q1 : em_uso;
+				hotel_action = liberarQuarto & objetoAcao = c3 & cartao3.status = em_uso : disponivel;
 				TRUE : cartao3.status;
 			esac;
 		next(cartao3.quartoId) :=
@@ -81,22 +91,36 @@ MODULE hotel(hotel_action, objetoAcao)
                 hotel_action = liberarQuarto & objetoAcao = q1 & quarto1.status = ocupado : desocupado;
                 TRUE: quarto1.status;
             esac;
-        
+		--Verifica se todos os cartoes foram entregues antes de devolver o quarto, caso contrario ativa a flag multa
+		next (quarto1.multa_ativa) := 
+			case
+				hotel_action = liberarQuarto & objetoAcao = q1 & (cartao1.status = em_uso | cartao2.status = em_uso | cartao3.status = em_uso) : TRUE;
+				hotel_action = reservarQuarto & objetoAcao = q1 : FALSE;
+				TRUE : quarto1.multa_ativa;
+			esac;
+		-- incrementa compra em quarto1 caso os cartoes sejam validos e o quarto esteja em uso
         next (quarto1.compras) :=
             case
                 hotel_action = creditarCompra & ((objetoAcao = c2 & cartao2.quartoId = quarto1.idQuarto) | (objetoAcao = c1 & cartao1.quartoId = quarto1.idQuarto) |
 				(objetoAcao = c3 & cartao3.quartoId = quarto1.idQuarto)) & quarto1.compras < 10 & quarto1.status = ocupado : (quarto1.compras + 1);
 				hotel_action = liberarQuarto & objetoAcao = q1 & quarto1.status = ocupado : 0;
                 TRUE : quarto1.compras;
-            esac;	
+            esac;
+		--verificacao da abertura do quarto com os cartoes validos
+		next (quarto1.aberto) :=
+			case
+				hotel_action = destrancarQuarto1 & quarto1.status = ocupado & ((objetoAcao = c1 & cartao1.status = em_uso) | (objetoAcao = c2 & cartao2.status = em_uso) | 
+				(objetoAcao = c3 & cartao3.status = em_uso)) : TRUE;
+				TRUE : FALSE;
+			esac;
 		--endQuarto1
 		
 		--Quarto2
-		--operacao de resevar quarto com os cartoes 4,5,6	
+		--operacao de resevar quarto com os cartoes 4,5,6 e fazer a entrega individual dos mesmos
 		next(cartao4.status) := 
 			case
-				hotel_action = reservarQuarto & objetoAcao = q2 & cartao4.status = disponivel : em_uso;
-				hotel_action = liberarQuarto & objetoAcao = q2 & cartao4.status = em_uso : disponivel;
+				hotel_action = reservarQuarto & objetoAcao = q2 : em_uso;
+				hotel_action = entregarCartao & objetoAcao = c4 & cartao4.status = em_uso : disponivel;
 				TRUE : cartao4.status;
 			esac;
 		next(cartao4.quartoId) :=
@@ -108,8 +132,8 @@ MODULE hotel(hotel_action, objetoAcao)
 			
 		next(cartao5.status) := 
 			case
-				hotel_action = reservarQuarto & objetoAcao = q2 & cartao5.status = disponivel : em_uso;
-				hotel_action = liberarQuarto & objetoAcao = q2 & cartao5.status = em_uso : disponivel;
+				hotel_action = reservarQuarto & objetoAcao = q2 : em_uso;
+				hotel_action = entregarCartao & objetoAcao = c5 & cartao5.status = em_uso : disponivel;
 				TRUE : cartao5.status;
 			esac;
 		next(cartao5.quartoId) :=
@@ -120,8 +144,8 @@ MODULE hotel(hotel_action, objetoAcao)
 			esac;
 		next(cartao6.status) := 
 			case
-				hotel_action = reservarQuarto & objetoAcao = q2 & cartao6.status = disponivel : em_uso;
-				hotel_action = liberarQuarto & objetoAcao = q2 & cartao6.status = em_uso : disponivel;
+				hotel_action = reservarQuarto & objetoAcao = q2 : em_uso;
+				hotel_action = entregarCartao & objetoAcao = c6 & cartao6.status = em_uso : disponivel;
 				TRUE : cartao6.status;
 			esac;
 		next(cartao6.quartoId) :=
@@ -137,6 +161,14 @@ MODULE hotel(hotel_action, objetoAcao)
                 hotel_action = liberarQuarto & objetoAcao = q2 & quarto2.status = ocupado : desocupado;
                 TRUE: quarto2.status;
             esac;
+		--Verifica se todos os cartoes foram entregues antes de devolver o quarto, caso contrario ativa a flag multa
+		next (quarto2.multa_ativa) := 
+			case
+				hotel_action = liberarQuarto & objetoAcao = q2 & (cartao4.status = em_uso | cartao5.status = em_uso | cartao6.status = em_uso) : TRUE;
+				hotel_action = reservarQuarto & objetoAcao = q2 : FALSE;
+				TRUE : quarto2.multa_ativa;
+			esac;
+		-- incrementa compra em quarto1 caso os cartoes sejam validos e o quarto esteja em uso
         next (quarto2.compras) :=
             case
                 hotel_action = creditarCompra & ((objetoAcao = c4 & cartao4.quartoId = quarto2.idQuarto) | (objetoAcao = c5 & cartao5.quartoId = quarto2.idQuarto) |
@@ -144,30 +176,48 @@ MODULE hotel(hotel_action, objetoAcao)
 				hotel_action = liberarQuarto & objetoAcao = q2 & quarto2.status = ocupado : 0;
                 TRUE : quarto2.compras;
             esac;	
+		--verificacao da abertura do quarto com os cartoes validos
+		next (quarto2.aberto) :=
+			case
+				hotel_action = destrancarQuarto2 & quarto2.status = ocupado & ((objetoAcao = c4 & cartao4.status = em_uso) | (objetoAcao = c5 & cartao5.status = em_uso) | 
+				(objetoAcao = c6 & cartao6.status = em_uso)) : TRUE;
+				TRUE : FALSE;
+			esac;
 		--endQuarto2
 		
 MODULE main
     VAR
         -- Acoes de um hotel.
-        hotel_action : {reservarQuarto, creditarCompra, liberarQuarto};
+        hotel_action : {reservarQuarto, creditarCompra, liberarQuarto, entregarCartao, destrancarQuarto1, destrancarQuarto2};
 		
-        -- Objetos que um hotel pode usar em suas acoes.
+        -- Objetos que um hotel pode usar em suas acoes (q = quarto; c = cartao).
         objetoAcao : {q1, q2, c1, c2, c3, c4, c5, c6};
-
+		
+		
         hotel : process hotel(hotel_action, objetoAcao);
 		
+		--Checagens de LTL:
+		
 		--Status de quarto
-		LTLSPEC G ! (hotel.quarto1.status = desocupado & hotel.cartao1.status = em_uso)
-		LTLSPEC G (hotel.quarto2.status = ocupado & hotel_action = liberarQuarto & objetoAcao = q2) -> X (hotel.quarto2.status = disponivel)
-		LTLSPEC G (hotel.quarto1.status = desocupado & hotel_action = reservarQuarto & objetoAcao = q1 & _process_selector_ = hotel) -> X (hotel.quarto1.status = ocupado)
+		--Globalmente e verdade dizer que se um quarto esta ocupado e as operacoes forem corretas, então o seu proximo estado sera de disponivel
+		LTLSPEC G ((hotel.quarto2.status = ocupado & hotel_action = liberarQuarto & objetoAcao = q2 & _process_selector_ = hotel) -> X (hotel.quarto2.status = desocupado))
+		--De modo analogo, quando o quarto estiver desocupado e as operacoes forem corretas, entao o seu proximo estado sera ocupado
+		LTLSPEC G ((hotel.quarto1.status = desocupado & hotel_action = reservarQuarto & objetoAcao = q1 & _process_selector_ = hotel) -> X (hotel.quarto1.status = ocupado))
 		
 		--status de cartao
-		LTLSPEC G (hotel.cartao1.status = disponivel & hotel_action = reservarQuarto & objetoAcao = q1 & _process_selector_ = hotel) -> X (hotel.cartao1.status = em_uso)
+		LTLSPEC G ((hotel.cartao1.status = disponivel & hotel_action = reservarQuarto & objetoAcao = q1 & _process_selector_ = hotel) -> X (hotel.cartao1.status = em_uso))
+		
 		--teste de invalidade
+		LTLSPEC G ((hotel_action = destrancarQuarto1 & (objetoAcao = c4 | objetoAcao = c5 | objetoAcao = c6) & _process_selector_ = hotel ) -> X (hotel.quarto1.aberto = FALSE)) 
 		
 		--Status de compras
-		LTLSPEC G ((hotel_action = creditarCompra & (objetoAcao = c1 | objetoAcao = c2 | objetoAcao = c3) & hotel.quarto1.status = ocupado & _process_selector_ = hotel & hotel.quarto1.compras = 0) -> X (hotel.quarto1.compras = 1))
+		LTLSPEC G ((hotel_action = creditarCompra & (objetoAcao = c1 | objetoAcao = c2 | objetoAcao = c3) & hotel.quarto1.status = ocupado & _process_selector_ = hotel) -> X (hotel.quarto1.compras > 0))
 		LTLSPEC G ((hotel_action = liberarQuarto & objetoAcao = q1 & hotel.quarto1.status = ocupado & _process_selector_ = hotel) -> X (hotel.quarto1.compras = 0))
+		
+		--Multa
+		LTLSPEC G((hotel_action = liberarQuarto & objetoAcao = q2 & (hotel.cartao4.status = em_uso | hotel.cartao5.status = em_uso | hotel.cartao6.status = em_uso) & _process_selector_ = hotel) -> X (hotel.quarto2.multa_ativa = TRUE))
+		LTLSPEC G((hotel_action = liberarQuarto & objetoAcao = q1 & (hotel.cartao1.status = em_uso | hotel.cartao2.status = em_uso | hotel.cartao3.status = em_uso) & _process_selector_ = hotel) -> X (hotel.quarto1.multa_ativa = TRUE))
+		
 		
 FAIRNESS
 	running;
