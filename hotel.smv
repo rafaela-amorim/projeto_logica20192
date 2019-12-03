@@ -54,6 +54,7 @@ MODULE hotel(hotel_action, objetoAcao)
 				TRUE : cartao1.status;
 			esac;
 
+		-- Coloca o id do quarto no cartao, ou entao poe um id absurdo quando liberar o quarto
 		next(cartao1.quartoId) :=
 			case
 				hotel_action = reservarQuarto & objetoAcao = q1 & cartao1.quartoId = 2 : 0;
@@ -89,6 +90,7 @@ MODULE hotel(hotel_action, objetoAcao)
 				TRUE : cartao3.quartoId;
 			esac;
 
+		-- ocupa ou desocupa um quarto
 		next (quarto1.status) :=
             -- Caso em que a acao do hotel eh reservarQuarto e o quarto desejado eh o quarto 1.
             case
